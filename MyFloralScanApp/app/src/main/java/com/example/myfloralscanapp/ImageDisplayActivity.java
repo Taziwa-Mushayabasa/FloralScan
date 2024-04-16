@@ -1,70 +1,116 @@
-package com.example.myfloralscanapp;
+package com.example.myfloralscanapp; // Replace with your actual package name
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import java.io.InputStream;
-import java.net.URL;
+import com.squareup.picasso.Picasso;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.IOException;
 
 public class ImageDisplayActivity extends AppCompatActivity {
+
+    private ImageView uploadedImage;
+    private TextView plantNameTextView;
+    private TextView plantDescriptionTextView;
+
+    private void setupBottomNavigationView() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.nav_view); // Adjust the ID if different
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.navigation_dashboard) {
+                Intent intentDashboard = new Intent(ImageDisplayActivity.this, ImageDisplayActivity.class);
+                startActivity(intentDashboard);
+                return true;
+            }
+            // Other cases
+            return false;
+        });
+        bottomNavigationView.setSelectedItemId(R.id.navigation_home);
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_display);
 
-        ImageView uploadedImage = findViewById(R.id.uploadedImage);
-        TextView dummyTextView = findViewById(R.id.dummyTextView);
-
-        String imageUrl = "https://floralscaninput.s3.eu-west-1.amazonaws.com/PhotoInput/gallery_image.jpg"; // Replace with your actual presigned URL
-        new DownloadImage(imageUrl, uploadedImage).execute();
-
-        dummyTextView.setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit...");
+        uploadedImage = findViewById(R.id.uploadedImage);
+        plantNameTextView = findViewById(R.id.plantNameTextView);
+        plantDescriptionTextView = findViewById(R.id.plantDescriptionTextView);
 
         setupBottomNavigationView();
+        getPlantDetailsFromLambda();
     }
 
-    private static class DownloadImage extends AsyncTask<Void, Void, Bitmap> {
-        private String url;
-        private ImageView imageView;
+    private void getPlantDetailsFromLambda() {
+        OkHttpClient client = new OkHttpClient();
+        String lambdaEndpoint = "https://utf5cdwynh.execute-api.eu-west-1.amazonaws.com/PlantDefaultStage/flowers"; // API Gateway endpoint
 
-        public DownloadImage(String url, ImageView imageView) {
-            this.url = url;
-            this.imageView = imageView;
-        }
+        Request request = new Request.Builder()
+                .url(lambdaEndpoint)
+                .build();
 
-        protected Bitmap doInBackground(Void... params) {
-            try {
-                InputStream in = new URL(url).openStream();
-                return BitmapFactory.decodeStream(in);
-            } catch (Exception e) {
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
-                return null;
+                Log.e("LambdaAPI", "Network request failed: " + e.getMessage());
+                // Handle failure
             }
-        }
 
-        protected void onPostExecute(Bitmap result) {
-            if (result != null) {
-                imageView.setImageBitmap(result);
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseData = response.body().string();
+                    Log.d("LambdaResponse", "Successful response data: " + responseData);
+                    runOnUiThread(() -> updateUI(responseData));
+                } else {
+                    Log.e("LambdaResponse", "Unsuccessful response with status code: " + response.code() + " and message: " + response.message());
+                    String errorBody = response.body().string();
+                    Log.e("LambdaResponse", "Unsuccessful response body: " + errorBody);
+                    // Handle non-successful response
+                }
             }
-        }
-    }
-
-    private void setupBottomNavigationView() {
-        BottomNavigationView bottomNavigationView = findViewById(R.id.nav_view);
-        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.navigation_home) {
-                Intent intentMain = new Intent(ImageDisplayActivity.this, MainActivity.class);
-                startActivity(intentMain);
-                return true;
-            }
-            return false;
         });
     }
+
+    private void updateUI(String jsonData) {
+        try {
+            JSONObject jsonObject = new JSONObject(jsonData);
+
+            //Gets plant details by parsing into string
+            final String plantName = jsonObject.optString("common_name", "Name not available");
+            final String description = jsonObject.optString("description", "Description not available");
+
+            // updates the page with the plant details
+            plantNameTextView.setText(plantName);
+            plantDescriptionTextView.setText(description);
+
+
+            String imageUrl = jsonObject.optString("image_url", "");
+            if (!imageUrl.isEmpty()) {
+                // Loads image
+                Picasso.get().load(imageUrl).placeholder(R.drawable.placeholder_flower).into(uploadedImage);
+            } else {
+
+                uploadedImage.setImageResource(R.drawable.placeholder_flower); // Use an actual placeholder resource
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e("UpdateUI", "JSONException: " + e.getMessage());
+            // Handle exception
+        }
+    }
+
 }

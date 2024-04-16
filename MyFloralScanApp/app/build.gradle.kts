@@ -8,6 +8,8 @@ android {
     compileSdk = 34
 
     defaultConfig {
+        buildConfigField("String", "AWS_ACCESS_KEY", "\"${properties["AWS_ACCESS_KEY"]}\"")
+        buildConfigField("String", "AWS_SECRET_KEY", "\"${properties["AWS_SECRET_KEY"]}\"")
         applicationId = "com.example.myfloralscanapp"
         minSdk = 24
         targetSdk = 33
@@ -36,6 +38,7 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+        buildConfig = true
     }
     kotlinOptions {
         jvmTarget = "1.8"
@@ -51,8 +54,9 @@ android {
 }
 
 dependencies {
-
-
+    implementation ("com.squareup.picasso:picasso:2.71828")
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation("com.amazonaws:aws-android-sdk-s3:2.7.2")
     implementation ("com.amazonaws:aws-android-sdk-s3:2.72.0")
     implementation ("com.amazonaws:aws-android-sdk-mobile-client:2.72.0")
     implementation ("com.amazonaws:aws-android-sdk-core:2.72.0")

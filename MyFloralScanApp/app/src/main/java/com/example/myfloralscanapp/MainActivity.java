@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
 
     private AmazonS3Client s3Client;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeAWSClient() {
-        String accessKey = "";
-        String secretKey = "";
+        String accessKey = BuildConfig.AWS_ACCESS_KEY;
+        String secretKey = BuildConfig.AWS_SECRET_KEY;
 
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
         s3Client = new AmazonS3Client(awsCredentials, new ClientConfiguration());
@@ -249,7 +248,5 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
-
-
 
 }
