@@ -1,0 +1,25 @@
+*.iml
+.gradle
+/local.properties
+
+# IDEA files
+.idea/
+*.xml
+*.iml
+*.hprof
+
+# Built application files
+/build/
+/app/build/
+
+# Files with sensitive information
+/gradle.properties
+
+# Misc
+.DS_Store
+/captures
+
+# Automatically generated source files
+/app/build/generated/
+.externalNativeBuild
+.cxx
