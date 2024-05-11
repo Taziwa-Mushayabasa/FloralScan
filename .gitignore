@@ -1,18 +1,25 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-/app/build/generated/source/buildconfig/**/*.java
+
+# IDEA files
+.idea/
+*.xml
+*.iml
+*.hprof
+
+# Built application files
+/build/
+/app/build/
+
+# Files with sensitive information
 /gradle.properties
 
+# Misc
+.DS_Store
+/captures
+
+# Automatically generated source files
+/app/build/generated/
 .externalNativeBuild
 .cxx
-local.properties
