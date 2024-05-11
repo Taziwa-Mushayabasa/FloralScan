@@ -22,4 +22,8 @@
 # Automatically generated source files
 /app/build/generated/
 .externalNativeBuild
+<<<<<<< HEAD
 .cxx
+=======
+.cxx
+>>>>>>> 181e3eb (Application Push)
